@@ -8,10 +8,39 @@
   </head>
   <body>
     <!-- Sidebar -->
+    <div class="header"><h1>Philadelphia Data Search</h1></div>
     <div class="sidebar">
       <!-- =====================
       Add elements in this space
       ====================== -->
+      <label id="text-label" for="text-input1">This is a selection input</label>
+      <br>
+      <select id="selectUrl">
+        <option  id="urlSolar" value="Solar">Solar installation Data</option>
+        <option  id="urlCrime" value="Crime">Crime Data</option>
+        <option  id="urlBikeCrashes" value="BikeCrashes">Bike Crashes Data</option>
+      </select>
+      <br>
+      <br>
+      <label id="lat-label" for="numeric-input">This is a selection input</label>
+      <br>
+      <select id="selectLat">
+        <option id="latSolar" value="Solar">Solar installation Latitude</option>
+        <option id="latCrime" value="Crime">Crime Latitude</option>
+        <option id="latBikeCrashes" value="BikeCrashes">Bike Crashes Latitude</option>
+      </select>
+      <br>
+      <br>
+      <label id="lng-label" for="numeric-input">This is a selection input</label>
+      <br>
+      <select id="selectLng">
+        <option id="lngSolar" value="Solar">Solar installation Longitude</option>
+        <option id="lngCrime" value="Crime">Crime Longitude</option>
+        <option id="lngBikeCrashes" value="BikeCrashes">Bike Crashes Longitude</option>
+      </select>
+      <br>
+      <br>
+      <button id="btn-search-label">Search</button>
     </div>
     <!-- Map -->
     <div id="map" class="map"></div>

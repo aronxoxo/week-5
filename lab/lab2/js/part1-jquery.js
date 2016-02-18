@@ -2,8 +2,8 @@
   Set up our map
 ===================== */
 var map = L.map('map', {
-  center: [39.9522, -75.1639],
-  zoom: 14
+  center: [40.7127, -74.0059],
+  zoom: 12
 });
 var Stamen_TonerLite = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}.{ext}', {
   attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
@@ -147,7 +147,85 @@ var Stamen_TonerLite = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/ton
 
     Use `_.isEqual` to make sure the object you feed in is the same as the one you read back out.
 ===================== */
+var company;
 
 $(document).ready(function() {
   // Do your stuff here
+
+  //Task 1:
+  $('#text-label1').text('Company Name');
+  $('#text-label2').text('Company Type');
+  $('#text-label3').text('Company Address');
+  $('#number-label').text('Establishment Year');
+  $('#checkbox-label1').text('Belongs to a Music Group');
+  $('#checkbox-label2').text('Show More Details');
+  $('#color-label').text('Marker Color');
+
+  //Task 2:
+  $('#text-input1').val('Republic Records');
+  $('#text-input2').val('Record Company');
+  $('#text-input3').val('1755 Broadway, New York, NY 10019');
+  $('#numeric-input').val(1999);
+  $('#cbox-input1').prop("checked",true);
+  $('#cbox-input2').prop("checked",true);
+  $('#color-input').val('#ff0033');
+
+  //Task 3:
+  function Company(name, type, address, year, group, detail, color){
+     this.Name = name;
+     this.Type = type;
+     this.Address = address;
+     this.Year = year;
+     this.Group = group;
+     this.Detail = detail;
+     this.Color = color;
+
+     this.addProperty = function(lat, lng, des){
+        this.Lat = lat;
+        this.Lng = lng;
+        this.Des = des;
+     }
+   };
+
+   company = new Company($('#text-input1').val(), $('#text-input2').val(),
+                         $('#text-input3').val(), $('#numeric-input').val(),
+                         $('#cbox-input1').prop("checked"), $('#cbox-input2').prop("checked"),
+                         $('#color-input').val());
+
+  //Task 4:
+  $('#text-input1').prop('disabled', false);
+  $('#text-input2').prop('disabled', false);
+  $('#text-input3').prop('disabled', false);
+  $('#numeric-input').prop('disabled', false);
+  $('#cbox-input1').prop('disabled', false);
+  $('#cbox-input2').prop('disabled', false);
+  $('#color-input').prop('disabled', false);
+
+  //Task 5:
+  $('#btn-search-label').click(function(){
+    console.log(company);
+  });
+
+  //Task 6:
+  //Change the fields' names
+  $('#lat-label').text('Latitude');
+  $('#lng-label').text('Longitude');
+  $('#description-label').text('Description');
+  //Fill in the default values
+  $('#lat-input').val(40.7659008);
+  $('#lng-input').val(-73.982323);
+  $('#description-input').val('A division of Universal Music Group.');
+  //Add them to the object
+  company.addProperty($('#lat-input').val(), $('#lng-input').val(), $('#description-input').val());
+  //Enable their display and edit
+  $('#lat-input').prop('disabled', false);
+  $('#lng-input').prop('disabled', false);
+  $('#description-input').prop('disabled', false);
+  //A circle marker and a popup
+  var color = $('#color-input').val();
+  var pathOpts = {'radius': 10,
+                  'fillColor': color};
+  L.circleMarker([company.Lat, company.Lng], pathOpts)
+    .bindPopup(company.Des)
+    .addTo(map);
 });

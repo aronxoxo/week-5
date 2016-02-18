@@ -4,19 +4,29 @@ body {
     font-family: helvetica, arial, sans-serif;
 }
 
+.header {
+  position:absolute;
+  height: 70px;
+  width:100%;
+  background-color: black;
+  font-family: helvetica, arial, sans-serif;
+  color:white;
+  padding-left: 10px;
+}
+
 .map {
     position: absolute;
     right: 0px;
     left: 340px;
     height: 100%;
-    top: 0;
+    top: 70px;
 }
 
 .sidebar {
     position: absolute;
     left: 0px;
     width: 340px;
-    top: 0;
+    top: 70px;
     bottom: 0;
     overflow-y: auto;
     padding: 20px;
