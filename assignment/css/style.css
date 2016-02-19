@@ -31,3 +31,7 @@ body {
     overflow-y: auto;
     padding: 20px;
 }
+
+.selectionDropDown {
+  width:200px;
+}

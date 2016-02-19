@@ -23,7 +23,10 @@ var downloadSolar = $.ajax(phillySolarInstallationDataUrl);
 var downloadCrime = $.ajax(phillyCrimeDataUrl);
 var downloadBikeCrashes = $.ajax(phillyBikeCrashesDataUrl);
 
+//Parse data according to the original data. Add new properties "newLat" and
+//"newLng" to avoid writing three different makeMarkers() function
 var parseData = function(data, type){
+//Parse Solar Installation Data
   if(type === "Solar"){
     var parsed = JSON.parse(data);
      _.map(parsed,function(datum){
@@ -32,6 +35,7 @@ var parseData = function(data, type){
     });
     return parsed;
   }
+//Parse Crime Data, shamelessly borrowed the idea in the "example" folder
   else if(type === "Crime"){
     var parsed = _.filter(JSON.parse(data), function(datum){
       return typeof datum.Coordinates !== 'number';
@@ -43,6 +47,7 @@ var parseData = function(data, type){
     });
     return parsed;
   }
+//Parse Bike Crashes Data
   else if(type === "BikeCrashes"){
     var parsed = JSON.parse(data);
      _.map(parsed,function(datum){
@@ -53,18 +58,21 @@ var parseData = function(data, type){
   }
 };
 
+//Make markers using the two newly defined properties
 var makeMarkers = function(array) {
   return _.map(array, function(obj){
     return L.marker([obj.newLat, obj.newLng]);
   });
 };
 
+//Plot the markers on the map
 var plotMarkers = function(array1) {
   _.each(array1, function(array2){
     array2.addTo(map);
   });
 };
 
+//Remove the markers from the map
  var removeMarkers = function(obj1) {
    _.each(obj1, function(obj2){
      map.removeLayer(obj2);
@@ -72,6 +80,7 @@ var plotMarkers = function(array1) {
  };
 
  $(document).ready(function() {
+   //Change the name of each filed of the form
    $('#text-label').text('Data Type');
    $('#lat-label').text('Latitude Key');
    $('#lng-label').text('Longitude Key');
@@ -79,56 +88,49 @@ var plotMarkers = function(array1) {
    $('#text-input').prop('disabled', false);
    $('#lat-input').prop('disabled', false);
    $('#lng-input').prop('disabled', false);
-
+   //Change the display value of Latitude and Longitude fields according to the URL data selection
+   //Avoid user input, avoid errors. And it makes more sense to channge simultaneously and accordingly.
+    $('#selectUrl').change(function(e){
+      if($('#selectUrl').val() === "Blank"){
+        $("#selectLat").empty();
+        $("#selectLng").empty();
+      }
+      if($('#selectUrl').val() === "Solar"){
+        $("#selectLat").empty();
+        $("#selectLng").empty();
+        $("#selectLat").append("<option value=\"Solar\">Solar installation Latitude</option>");
+        $("#selectLng").append("<option value=\"Solar\">Solar installation Longitude</option>");
+      }
+      else if($('#selectUrl').val() === "Crime"){
+        $("#selectLat").empty();
+        $("#selectLng").empty();
+        $("#selectLat").append("<option value=\"Crime\">Crime Latitude</option>");
+        $("#selectLng").append("<option value=\"Crime\">Crime Longitude</option>");
+      }
+      else if($('#selectUrl').val() === "BikeCrashes"){
+        $("#selectLat").empty();
+        $("#selectLng").empty();
+        $("#selectLat").append("<option value=\"BikeCrashes\">Bike Crashes Latitude</option>");
+        $("#selectLng").append("<option value=\"BikeCrashes\">Bike Crashes Longitude</option>");
+      }
+    });
+  //map different set of markers when users click the search button
    $('#btn-search-label').click(function(){
      removeMarkers(myMarkers);
-
      if($('#selectUrl').val() === "Solar"){
-       if($('#selectLat').val() === "Solar"){
-         if($('#selectLng').val() === "Solar"){
-          downloadSolar.done(function(data){
-            plotMarkers(myMarkers = makeMarkers(parseData(data, "Solar")));
-          });
-         }
-         else{
-           alert("Mismatched Longitude");
-         }
-       }
-       else{
-         alert("Mismatched Latitude");
-       }
+       downloadSolar.done(function(data){
+         plotMarkers(myMarkers = makeMarkers(parseData(data, "Solar")));
+       });
      }
-
      if($('#selectUrl').val() === "Crime"){
-       if($('#selectLat').val() === "Crime"){
-         if($('#selectLng').val() === "Crime"){
-          downloadCrime.done(function(data){
-            plotMarkers(myMarkers = makeMarkers(parseData(data, "Crime")));
-          });
-         }
-         else{
-           alert("Mismatched Longitude");
-         }
-       }
-       else{
-         alert("Mismatched Latitude");
-       }
+       downloadCrime.done(function(data){
+         plotMarkers(myMarkers = makeMarkers(parseData(data, "Crime")));
+       });
      }
-
      if($('#selectUrl').val() === "BikeCrashes"){
-       if($('#selectLat').val() === "BikeCrashes"){
-         if($('#selectLng').val() === "BikeCrashes"){
-          downloadBikeCrashes.done(function(data){
-            plotMarkers(myMarkers = makeMarkers(parseData(data, "BikeCrashes")));
-          });
-         }
-         else{
-           alert("Mismatched Longitude");
-         }
-       }
-       else{
-         alert("Mismatched Latitude");
-       }
-     }
+       downloadBikeCrashes.done(function(data){
+         plotMarkers(myMarkers = makeMarkers(parseData(data, "BikeCrashes")));
+       });
+    }
    });
 });
