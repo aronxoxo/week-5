@@ -13,71 +13,63 @@ var Stamen_TonerLite = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/ton
    ext: 'png'
  }).addTo(map);
 
-var myMarkers=[];
+//varaibles to store data
+var dataSolar = [];
+var dataCrime = [];
+var dataBikeCrashes = [];
 
-var phillySolarInstallationDataUrl = "https://raw.githubusercontent.com/CPLN690-MUSA610/datasets/master/json/philadelphia-solar-installations.json";
-var phillyCrimeDataUrl = "https://raw.githubusercontent.com/CPLN690-MUSA610/datasets/master/json/philadelphia-crime-snippet.json";
-var phillyBikeCrashesDataUrl = "https://raw.githubusercontent.com/CPLN690-MUSA610/datasets/master/json/philadelphia-bike-crashes-snippet.json";
+//Variables to store markers
+var markerSolar = [];
+var markerCrime = [];
+var markerBikeCrashes = [];
 
-var downloadSolar = $.ajax(phillySolarInstallationDataUrl);
-var downloadCrime = $.ajax(phillyCrimeDataUrl);
-var downloadBikeCrashes = $.ajax(phillyBikeCrashesDataUrl);
-
-//Parse data according to the original data. Add new properties "newLat" and
-//"newLng" to avoid writing three different makeMarkers() function
-var parseData = function(data, type){
-//Parse Solar Installation Data
-  if(type === "Solar"){
-    var parsed = JSON.parse(data);
-     _.map(parsed,function(datum){
-      datum.newLat = parseFloat(datum.Y);
-      datum.newLng = parseFloat(datum.X);
+//Get, parse, and make markers from the begining
+var dataGetParseMarker = function(){
+    $.ajax("https://raw.githubusercontent.com/CPLN690-MUSA610/datasets/master/json/philadelphia-solar-installations.json").done(function(solar){
+      dataSolar = _.chain(JSON.parse(solar)).map(function(datum){
+        datum.coords = [parseFloat(datum.Y),parseFloat(datum.X)];
+        markerSolar.push(datum.marker = L.marker(datum.coords));
+        return datum;
+      }).value();
     });
-    return parsed;
-  }
-//Parse Crime Data, shamelessly borrowed the idea in the "example" folder
-  else if(type === "Crime"){
-    var parsed = _.filter(JSON.parse(data), function(datum){
-      return typeof datum.Coordinates !== 'number';
+    $.ajax("https://raw.githubusercontent.com/CPLN690-MUSA610/datasets/master/json/philadelphia-crime-snippet.json").done(function(crime){
+      dataCrime = _.chain(JSON.parse(crime)).filter(function(datum){
+        return typeof datum.Coordinates !== 'number';
+      }).map(function(datum) {
+        var latlongStrings = datum.Coordinates.replace('(', '').replace(')', '').replace(',', '').split(' ');
+        var latlong = _.map(latlongStrings, function(str) {
+          return parseFloat(str);
+        });
+        datum.coords = latlong;
+        markerCrime.push(datum.marker = L.marker(datum.coords));
+        return datum;
+      }).value();
     });
-    _.map(parsed, function(datum){
-      var latlongStrings = datum.Coordinates.replace('(', '').replace(')', '').replace(',', '').split(' ');
-      datum.newLat = parseFloat(latlongStrings[0]);
-      datum.newLng = parseFloat(latlongStrings[1]);
+    $.ajax("https://raw.githubusercontent.com/CPLN690-MUSA610/datasets/master/json/philadelphia-bike-crashes-snippet.json").done(function(bike){
+      dataBikeCrashes = _.chain(JSON.parse(bike)).map(function(datum){
+        datum.coords = [parseFloat(datum.LAT), parseFloat(datum.LNG)];
+        markerBikeCrashes.push(datum.marker = L.marker(datum.coords));
+        return datum;
+      }).value();
     });
-    return parsed;
-  }
-//Parse Bike Crashes Data
-  else if(type === "BikeCrashes"){
-    var parsed = JSON.parse(data);
-     _.map(parsed,function(datum){
-      datum.newLat = parseFloat(datum.LAT);
-      datum.newLng = parseFloat(datum.LNG);
-    });
-    return parsed;
-  }
 };
 
-//Make markers using the two newly defined properties
-var makeMarkers = function(array) {
-  return _.map(array, function(obj){
-    return L.marker([obj.newLat, obj.newLng]);
-  });
+//Call the above function
+dataGetParseMarker();
+
+//Remove the marker layer
+var removeMarkers = function(data){
+   _.chain(data).each(function(datum){
+     map.removeLayer(datum);
+   }).value();
 };
 
-//Plot the markers on the map
-var plotMarkers = function(array1) {
-  _.each(array1, function(array2){
-    array2.addTo(map);
-  });
+//Plot markers
+var plotMarkers = function(data){
+  _.chain(data).each(function(datum){
+  datum.addTo(map);
+}).value();
 };
-
-//Remove the markers from the map
- var removeMarkers = function(obj1) {
-   _.each(obj1, function(obj2){
-     map.removeLayer(obj2);
-   });
- };
 
  $(document).ready(function() {
    //Change the name of each filed of the form
@@ -90,10 +82,13 @@ var plotMarkers = function(array1) {
    $('#lng-input').prop('disabled', false);
    //Change the display value of Latitude and Longitude fields according to the URL data selection
    //Avoid user input, avoid errors. And it makes more sense to channge simultaneously and accordingly.
-    $('#selectUrl').change(function(e){
+   $('#selectUrl').change(function(){
       if($('#selectUrl').val() === "Blank"){
         $("#selectLat").empty();
         $("#selectLng").empty();
+        removeMarkers(markerSolar);
+        removeMarkers(markerCrime);
+        removeMarkers(markerBikeCrashes);
       }
       if($('#selectUrl').val() === "Solar"){
         $("#selectLat").empty();
@@ -114,23 +109,25 @@ var plotMarkers = function(array1) {
         $("#selectLng").append("<option value=\"BikeCrashes\">Bike Crashes Longitude</option>");
       }
     });
-  //map different set of markers when users click the search button
-   $('#btn-search-label').click(function(){
-     removeMarkers(myMarkers);
-     if($('#selectUrl').val() === "Solar"){
-       downloadSolar.done(function(data){
-         plotMarkers(myMarkers = makeMarkers(parseData(data, "Solar")));
-       });
+    //Remove any previous marker layer, and add a selected data marker layer to the map, when the button is clicked
+    $('#btn-search-label').click(function(){
+      if($('#selectUrl').val() === "Solar"){
+        removeMarkers(markerSolar);
+        removeMarkers(markerCrime);
+        removeMarkers(markerBikeCrashes);
+        plotMarkers(markerSolar);
+      }
+      else if($('#selectUrl').val() === "Crime"){
+        removeMarkers(markerSolar);
+        removeMarkers(markerCrime);
+        removeMarkers(markerBikeCrashes);
+        plotMarkers(markerCrime);
+      }
+      else if($('#selectUrl').val() === "BikeCrashes"){
+        removeMarkers(markerSolar);
+        removeMarkers(markerCrime);
+        removeMarkers(markerBikeCrashes);
+        plotMarkers(markerBikeCrashes);
      }
-     if($('#selectUrl').val() === "Crime"){
-       downloadCrime.done(function(data){
-         plotMarkers(myMarkers = makeMarkers(parseData(data, "Crime")));
-       });
-     }
-     if($('#selectUrl').val() === "BikeCrashes"){
-       downloadBikeCrashes.done(function(data){
-         plotMarkers(myMarkers = makeMarkers(parseData(data, "BikeCrashes")));
-       });
-    }
-   });
+    });
 });
